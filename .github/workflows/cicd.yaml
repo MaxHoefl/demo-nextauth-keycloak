@@ -1,0 +1,41 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to ACR
+        run: |
+          az acr login --name ${{ secrets.AZURE_CONTAINER_REGISTRY }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.AZURE_CONTAINER_REGISTRY }}/demo-nextauth-app:latest .
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.AZURE_CONTAINER_REGISTRY }}/demo-nextauth-app:latest
+
+      - name: Configure kubectl
+        run: |
+          az aks get-credentials --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} --name ${{ secrets.AKS_CLUSTER_NAME }}
+
+      - name: Deploy Helm chart
+        run: |
+          helm upgrade --install demo-nextauth-app ./helm \
+            --set image.repository=${{ secrets.AZURE_CONTAINER_REGISTRY }}/demo-nextauth-app \
+            --set image.tag=latest

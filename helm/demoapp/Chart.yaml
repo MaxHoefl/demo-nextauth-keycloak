@@ -1,0 +1,4 @@
+apiVersion: 'v1'
+name: demo-nextauth-app
+version: '0.1.0'
+appVersion: '0.1.0'

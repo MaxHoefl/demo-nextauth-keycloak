@@ -1,0 +1,4 @@
+image:
+  repository: default
+  tag: default
+port: 3000
