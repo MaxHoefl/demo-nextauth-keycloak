@@ -11,6 +11,9 @@ spec:
       http:
         paths:
           - path: /app/
+            pathType: Prefix
             backend:
-              serviceName: {{ .Chart.Name }}-service
-              servicePort: 3000
+              service:
+                name: {{ .Chart.Name }}-service
+                port:
+                  number: {{ .Values.port }}
