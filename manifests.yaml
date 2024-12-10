@@ -1,0 +1,73 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app
+  labels:
+    app: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      containers:
+        - name: main
+          image: demo-app:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DEMO_FRONTEND_CLIENT_ID
+              value: "default"
+            - name: DEMO_FRONTEND_CLIENT_SECRET
+              value: "default"
+            - name: AUTH_ISSUER
+              value: "default"
+            - name: NEXTAUTH_URL
+              value: "default"
+            - name: NEXTAUTH_SECRET
+              value: "default"
+            - name: END_SESSION_URL
+              value: "default"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-svc
+  labels:
+    app: demo
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3000
+  selector:
+    app: demo
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-ingress
+  annotations:
+    #    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "demo-app.example.com"
+      http:
+        paths:
+          - path: /app(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: demo-svc
+                port:
+                  number: 80
+
